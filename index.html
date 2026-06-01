@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Generator Kalendarza Treningowego PPL</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 50px; background: #121212; color: #e0e0e0; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1 { color: #e63946; }
+        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #e63946; color: white; border: none; border-radius: 5px; transition: 0.3s; margin-top: 20px; }
+        button:hover { background: #ff4d5a; transform: scale(1.05); }
+        p { line-height: 1.6; color: #bbb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mój Plan na 4 Tygodnie</h1>
+        <p>Kliknij przycisk, aby pobrać plik kalendarza (.ics).<br>Zawiera on pełne listy ćwiczeń w opisach wydarzeń.</p>
+        <button onclick="generateCalendar()">📅 Pobierz plan do kalendarza</button>
+    </div>
+
+    <script>
+        function generateCalendar() {
+            const exercises = {
+                "PUSH": "1. Barbell Bench Press (6-8 reps)\\n2. Incline Smith Press (8-10 reps)\\n3. High-to-Low Cable Fly (12-15 reps)\\n4. Low-to-High Cable Fly (12-15 reps)\\n5. DB Shoulder Press (8-10 reps)\\n6. Lateral Raise (12-15 reps)\\n7. Triceps Rope Pushdown (10-12 reps)",
+                "PULL": "1. Pull-Ups (max)\\n2. Seated Cable Row (8-10 reps)\\n3. Lat Pulldown Wide (10-12 reps)\\n4. Face Pulls Seated (15-20 reps)\\n5. Preacher Curl (10-12 reps)\\n6. Hammer Curls (10-12 reps)",
+                "LEGS": "1. Squats (6-8 reps)\\n2. RDL (8-10 reps)\\n3. Leg Press (8-12 reps)\\n4. Leg Extension (9-12 reps)\\n5. Lying Leg Curl (12-15 reps)\\n6. Calf Raise (8-10 reps)\\n7. Captain Chair Leg Raise (AMRAP)\\n8. Allah Cable Crunches (9-12 reps)"
+            };
+
+            let icsFile = "BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//AI Coach//PL\\nCALSCALE:GREGORIAN\\n";
+            const startDate = new Date();
+            
+            // Wzór rotacyjny: 2 dni treningu, 1 dzień wolny (średnio)
+            const pattern = ["PUSH", "PULL", "OFF", "LEGS", "PUSH", "OFF", "PULL", "LEGS", "OFF", "PUSH", "PULL", "OFF", "LEGS", "PUSH", "OFF", "PULL"];
+            const fullPlan = [];
+            while(fullPlan.length < 28) fullPlan.push(...pattern);
+
+            for (let i = 0; i < 28; i++) {
+                let dayType = fullPlan[i];
+                if (dayType === "OFF") continue;
+
+                let date = new Date();
+                date.setDate(startDate.getDate() + i);
+                let dateStr = date.toISOString().replace(/-|:|\\.\\d+/g, "").split("T")[0];
+
+                icsFile += "BEGIN:VEVENT\\n";
+                icsFile += "DTSTART;VALUE=DATE:" + dateStr + "\\n";
+                icsFile += "SUMMARY:Trening " + dayType + "\\n";
+                icsFile += "DESCRIPTION:Lista ćwiczeń:\\n" + exercises[dayType] + "\\n\\nSprawdź progres w Analytics!\\n";
+                icsFile += "END:VEVENT\\n";
+            }
+
+            icsFile += "END:VCALENDAR";
+
+            const blob = new Blob([icsFile.replace(/\\n/g, "\\r\\n")], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'moj_plan_treningowy.ics';
+            link.click();
+        }
+    </script>
+</body>
+</html>
